@@ -1,0 +1,4 @@
+{
+  "browser": "RemoteToRemoteChrome",
+  "<browser options>": ["LocalFirefox", "LocalChrome", "LocalHeadlessChrome", "LocalToRemoteChrome", "RemoteToRemoteChrome"]
+}

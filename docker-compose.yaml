@@ -1,0 +1,30 @@
+version: "3"
+services:
+  selenium-hub:
+    image: selenium/hub:4.3.0
+    ports:
+      - "4442:4442"
+      - "4443:4443"
+      - "4444:4444"
+  chrome:
+    image: selenium/node-chrome:103.0
+    shm_size: '2g'
+    depends_on:
+      - selenium-hub
+    environment:
+      - SE_EVENT_BUS_HOST=selenium-hub
+      - SE_EVENT_BUS_PUBLISH_PORT=4442
+      - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
+  firefox:
+    image: selenium/node-firefox:103.0
+    shm_size: '2g'
+    depends_on:
+      - selenium-hub
+    environment:
+      - SE_EVENT_BUS_HOST=selenium-hub
+      - SE_EVENT_BUS_PUBLISH_PORT=4442
+      - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
+  tests-selenium-docker:
+    image: andriipavelchak/tests-selenium-docker:latest
+    volumes:
+      - C:/home/qa/jenkins/workspace/TESTS_DOCKER_RUNNER/reports/remote-allure-reports:/home/ap_test_project_1/reports/allure-results

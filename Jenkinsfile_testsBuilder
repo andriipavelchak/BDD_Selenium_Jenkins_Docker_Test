@@ -1,0 +1,20 @@
+pipeline {
+    agent { label 'local-docker' }
+    stages {
+        stage('Build Image') {
+            steps {
+                bat "docker build -t=andriipavelchak/tests-selenium-docker:$BUILD_NUMBER ."
+                bat "docker build -t=andriipavelchak/tests-selenium-docker:latest ."
+            }
+        }
+        stage('Push Image') {
+            steps {
+               withCredentials([usernamePassword(credentialsId: 'dockerhub', passwordVariable: 'pass', usernameVariable: 'user')]){
+                    bat "docker login --username=${user} --password=${pass}"
+                    bat "docker push andriipavelchak/tests-selenium-docker:$BUILD_NUMBER"
+                    bat "docker push andriipavelchak/tests-selenium-docker:latest"
+               }
+            }
+        }
+    }
+}

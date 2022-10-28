@@ -1,0 +1,44 @@
+pipeline {
+    agent { label 'local-docker' }
+    stages {
+        stage('Pull Latest Image') {
+            steps {
+                bat "docker pull andriipavelchak/tests-selenium-docker:latest"
+            }
+        }
+        stage('Create Place for Reports') {
+            steps {
+                bat 'mkdir "C:/home/qa/jenkins/workspace/TESTS_DOCKER_RUNNER/reports/remote-allure-reports"'
+            }
+        }
+        stage('Start Grid') {
+            steps {
+                bat "docker-compose up -d selenium-hub chrome firefox"
+            }
+        }
+        stage('Run Tests') {
+            steps {
+                bat "docker-compose up tests-selenium-docker"
+            }
+        }
+        stage('Generate Report') {
+            steps {
+                script {
+                    allure([
+                        includeProperties: false,
+                        jdk: '',
+                        properties: [],
+                        reportBuildPolicy: 'ALWAYS',
+                        results: [[path: 'reports/remote-allure-reports']]
+                    ])
+                }
+            }
+        }
+    }
+    post {
+            always {
+                bat "docker-compose down"
+                bat "docker rmi -f andriipavelchak/tests-selenium-docker:latest"
+            }
+    }
+}

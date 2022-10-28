@@ -1,0 +1,42 @@
+pipeline {
+    agent any
+    stages {
+        stage('Build Image') {
+            steps {
+                bat "docker build -t=andriipavelchak/tests-selenium-docker:$BUILD_NUMBER ."
+                bat "docker build -t=andriipavelchak/tests-selenium-docker:latest ."
+            }
+        }
+        stage('Push Image') {
+            steps {
+               withCredentials([usernamePassword(credentialsId: 'dockerhub', passwordVariable: 'pass', usernameVariable: 'user')]){
+                    bat "docker login --username=${user} --password=${pass}"
+                    bat "docker push andriipavelchak/tests-selenium-docker:$BUILD_NUMBER"
+                    bat "docker push andriipavelchak/tests-selenium-docker:latest"
+               }
+            }
+        }
+        stage('Pull Latest Image') {
+            steps {
+                bat "docker pull andriipavelchak/tests-selenium-docker:latest"
+            }
+        }
+        stage('Start Grid') {
+            steps {
+                bat "docker-compose up -d selenium-hub chrome firefox"
+            }
+        }
+        stage('Run Tests') {
+            steps {
+                bat "docker-compose up tests-selenium-docker"
+            }
+        }
+    }
+    post {
+        always {
+            bat "docker-compose down"
+            bat "docker rmi -f andriipavelchak/tests-selenium-docker:$BUILD_NUMBER"
+            bat "docker rmi -f andriipavelchak/tests-selenium-docker:latest"
+        }
+    }
+}
